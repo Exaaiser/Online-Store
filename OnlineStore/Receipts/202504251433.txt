@@ -1,0 +1,5 @@
+--- SALES RECEIPT ---
+Order Date: 2025-04-25 14:33:36
+Sales Total: $17.99
+Amount Paid: $100.0
+Change Given: $82.01
