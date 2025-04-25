@@ -1,128 +1,208 @@
 package com.pluralsight;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Scanner;
+
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class OnlineStore {
     public static void main(String[] args) {
-        // Creating our basic things for installation
-        ArrayList<Product> productList = new ArrayList<>();
-        Scanner scanner = new Scanner(System.in);
-        // I added that after putting ''cart'' value
-        ArrayList<Product> cart = new ArrayList<>();
+        // Creating our basic array list blablas
+        Map<String, Product> productMap = new HashMap<>();
 
-        try { // We start our brick for file location and scanners
+        // Creating our basic things for installation
+        Map<String, Integer> cart = new HashMap<>();
+        // We create cart Hashmap and these guy makes everything
+        Scanner scanner = new Scanner(System.in);
+
+        try {
+            // We start our brick for file location and scanners
             File file = new File("src/main/resources/products.csv");
             Scanner fileScanner = new Scanner(file);
-            fileScanner.nextLine(); //Skipping first line
+            fileScanner.nextLine(); // skip header row
+
             //Creating line split for better display If I want I can use patternQuotes
             while (fileScanner.hasNextLine()) {
                 String line = fileScanner.nextLine();
                 String[] parts = line.split("\\|");
-                // We put our index values in []
+// We put our index values in []
                 String sku = parts[0];
                 String name = parts[1];
                 double price = Double.parseDouble(parts[2]);
                 String department = parts[3];
                 // And we give our product clas list here as a scanner I think
                 Product product = new Product(sku, name, price, department);
-                productList.add(product);
+                productMap.put(sku, product);  // Add product to the productMap
             }
 
             fileScanner.close(); //Closing scanner because We must IDK why xD
         } catch (FileNotFoundException e) {
-            System.out.println("CSV file doesnt exist.");
+            System.out.println("CSV file not found.");  // Basic catch block actually I did copy n paste from other projects
             return;
-            // Basic catch block actually I did copy n paste from other projects
         }
 
-        while (true) { //Creating our menu system
+        boolean running = true;
+        //Creating our menu system
+        while (running) {
             System.out.println("\n--- MAIN MENU ---");
-            System.out.println("1. SHOW PRODUCTS");
-            System.out.println("2. VIEW CART"); //I forgot the adding this guy and I try to fix problem why Its isn't appear at screen :KEKW:
-            System.out.println("3. EXIT");
-            System.out.print("Your choices: "); // We want user can be able for choices
-            int choice = scanner.nextInt(); // And we give int choice for at main menu user shall use numbers
+            System.out.println("1. Show Products");
+            System.out.println("2. Show Cart"); //We forgot the adding this guy and I try to fix problem why Its isn't appear at screen :KEKW:
+            System.out.println("3. Exit");
+            System.out.print("Your choice: ");// We want user can be able for choices
 
-            //Creating if n else statements, actually I like switch statements more but when I discussed with AI I got If commands better
-            if (choice == 1) {
-                System.out.println("\n--- PRODUCTS ---");
-                for (Product product : productList) { // I really enjoy this guy I learned from CodeWars other people use that one for soccer game thing and I researched
-                    product.display();
-                }
+            String choice = scanner.nextLine(); // And we give String choice for at main menu user shall use numbers
 
-                System.out.print("Enter SKU to add to cart or 'back' to return: ");
-                scanner.nextLine();
-                String skuInput = scanner.nextLine();
+            switch (choice) {//Creating switch statements, actually I like If statements more but when I discussed with AI I got If commands better
 
-                //These command block Its more default one think creating string scanner for input
-                if (skuInput.equalsIgnoreCase("EASTEREGG1")) {
-                    System.out.println("\n NEVER GIVE UP - I SUPPORT YOU - YOU ARE NEVER ALONE \n");
-                    continue;
-                }
+                case "1":  // Show available products
+                    System.out.println("\n--- PRODUCTS ---");
 
-                if (!skuInput.equalsIgnoreCase("back")) {
-                    boolean found = false; // I try Boolean found = false but It dosent work and I back ! statement
-                    for (Product p : productList) {
-                        if (p.getSku().equalsIgnoreCase(skuInput)) {
-                            cart.add(p);
-                            System.out.println(p.getName() + " added to cart.");
-                            found = true;
-                            break;
+                    for (Product product : productMap.values()) {
+                        product.display();
+                    }
+
+                    System.out.print("Enter SKU to add to cart or 'back' to return: ");
+                    String skuInput = scanner.nextLine().trim();  // User input for ID
+                    if (skuInput.equalsIgnoreCase("Turkish League")) {
+                        System.out.println("🧿 Mytic Kebap Power It was here!");
+                        break; // hehehehehhehehe
+                    }
+                    if (!skuInput.equalsIgnoreCase("back")) {
+                        Product selected = productMap.get(skuInput.toUpperCase());  // Get product by SKU
+                        if (selected != null) {
+                            //Add the selected product to the car, increasing quantity if already added
+                            cart.put(skuInput.toUpperCase(), cart.getOrDefault(skuInput.toUpperCase(), 0) + 1);
+                            System.out.println(selected.getName() + " added to cart.");
+                        } else {
+                            System.out.println("Product not found.");
                         }
                     }
-                    if (!found) {
-                        System.out.println("Product not found.");
-                    }
-                }
-            } else if (choice == 2) {
-                if (cart.isEmpty()) {
-                    System.out.println("Your cart is empty.");
-                } else {
-                    System.out.println("\n--- YOUR CART ---");
-                    double total = 0;
-                    for (int i = 0; i < cart.size(); i++) {  //No lies for here when I see int i = x I rush Ai AND i did again for understanding
-                        Product p = cart.get(i);
-                        System.out.print((i + 1) + ". ");
-                        p.display();
-                        total += p.getPrice();
-                    } //I dont wanna deny that when I use shortcut terms like "p" I feel very cool!
-                    System.out.printf("Total: $%.2f\n", total);
+                    break;
 
-                    System.out.println("\n1. Remove a product");
+                case "2":  // Show the current our list
+                    if (cart.isEmpty()) {
+                        System.out.println("Your cart is empty.");
+                        break;
+                    }
+
+                    System.out.println("\n--- YOUR CART ---");
+                    double total = 0.0;
+                    // Display each item in the cart along with its quantity and total price
+                    for (String sku : cart.keySet()) {
+                        Product p = productMap.get(sku);
+                        int quantity = cart.get(sku);
+                        double itemTotal = p.getPrice() * quantity;
+                        System.out.printf("%s x%d - $%.2f\n", p.getName(), quantity, itemTotal);
+                        total += itemTotal;  // For see total price of prodcuts
+                    }
+                    System.out.printf("Total: $%.2f\n", total); //We searched  all Internet for this symbols
+
+                    System.out.println("1. Remove an item");
                     System.out.println("2. Check Out");
                     System.out.println("3. Back to Main Menu");
                     System.out.print("Your choice: ");
-                    int cartChoice = scanner.nextInt();
-                    // Well firstly us tried int choice again (It took my 20m because I didnt understood why Its not working"
+                    String subChoice = scanner.nextLine();
+                    //Actually all of them are basic things I wanna explain that but I d take for ever I think
 
-                    if (cartChoice == 1) {
-                        System.out.print("Enter the number of the product to remove: ");
-                        int removeIndex = scanner.nextInt(); //We search google for that and I learned removeIndex 's very usual as a term
-                        if (removeIndex >= 1 && removeIndex <= cart.size()) {
-                            Product removed = cart.remove(removeIndex - 1);
-                            System.out.println(removed.getName() + " removed from cart.");
+                    if (subChoice.equals("1")) {  // Remove an item from the cart
+                        System.out.print("Enter SKU to remove from cart: "); //We used String based remove cause Int one would be problem
+                        String removeSku = scanner.nextLine().trim().toUpperCase();
+                        if (cart.containsKey(removeSku)) {
+                            int currentQuantity = cart.get(removeSku); // Quantity thigs
+                            if (currentQuantity > 1) {
+                                cart.put(removeSku, currentQuantity - 1);  // Decrease the quantity by 1
+                                System.out.println("One unit removed. Remaining: " + (currentQuantity - 1));
+                            } else {
+                                cart.remove(removeSku);  // Remove the product entirely if only one left
+                                System.out.println("Product removed from cart.");
+                            }
                         } else {
-                            System.out.println("Invalid product number.");
+                            System.out.println("Product not found in cart.");
                         }
 
-                    } else if (cartChoice == 2) { //Every time I forget these symbols :(
-                        System.out.printf("Checked out successfully! Total paid: $%.2f\n", total);
-                        cart.clear();
+                    } else if (subChoice.equals("2")) {
+                        // Generate receipt for checkout and
+                        System.out.println("\n--- RECEIPT ---");
+                        System.out.println("Thank you for your purchase!");
+                        double receiptTotal = 0.0;
+                        for (String sku : cart.keySet()) {
+                            Product p = productMap.get(sku); // I feel very cool when I use little shortcuts like "p"
+                            int quantity = cart.get(sku);
+                            double itemTotal = p.getPrice() * quantity;
+                            System.out.printf("%s x%d - $%.2f\n", p.getName(), quantity, itemTotal);
+                            receiptTotal += itemTotal;
+                        }
+                        System.out.printf("Sales Total: $%.2f\n", receiptTotal);
 
-                    } else if (cartChoice == 3) {
-                        // Back to menu, do nothing
-                    } else {
-                        System.out.println("Invalid cart option.");
+                        // Prompt user for payment
+                        System.out.print("Enter payment amount: $");
+                        double payment = scanner.nextDouble();
+                        scanner.nextLine();  // for leftovering
+
+                        // Verify payment
+                        if (payment >= receiptTotal) {
+                            double change = payment - receiptTotal;
+                            System.out.printf("Change Given: $%.2f\n", change);
+
+                            // Print receipt with payment and change
+                            System.out.println("\n--- SALES RECEIPT ---");
+                            System.out.println("Order Date: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+                            for (String sku : cart.keySet()) {
+                                Product p = productMap.get(sku);
+                                int quantity = cart.get(sku);
+                                System.out.printf("%s x%d - $%.2f\n", p.getName(), quantity, p.getPrice() * quantity);
+                            }
+                            System.out.printf("Sales Total: $%.2f\n", receiptTotal);
+                            System.out.printf("Amount Paid: $%.2f\n", payment);
+                            System.out.printf("Change Given: $%.2f\n", change);
+
+                            //Nobody can know we just copy paste "$%.2f"
+
+                            // Generate receipt file
+                            generateReceiptFile(receiptTotal, payment, change);
+
+                            cart.clear();  // Clear the cart after checkout
+                            System.out.println("Thank you for shopping with us!");
+                            running = false;  // Exit after checkout
+                        } else {
+                            System.out.println("Insufficient payment. Please try again.");
+                        }
+
                     }
-                }
-            } else if (choice == 3) {
-                System.out.println("Exiting...");
-                break; // Programı bitir
-            } else {
-                System.out.println("Invalid choice.");
+                    break;
+
+                case "3":  // Exit the program
+                    System.out.println("Goodbye!");
+                    running = false;
+                    break;
+
+                default:
+                    System.out.println("Invalid choice.");
             }
+        }
+
+        scanner.close();  // Close the scanner
+    }
+
+    // Method to generate receipt file and we spent lot of minutes here.
+    private static void generateReceiptFile(double total, double paid, double change) {
+        try {
+            //  We creating filereader and string scanners
+            String timestamp = new SimpleDateFormat("yyyyMMddHHmm").format(new Date());
+            File receiptFile = new File("Receipts/" + timestamp + ".txt");
+            receiptFile.getParentFile().mkdirs();
+            // Actually we got "mkdirs" from Ai conversation  I remember these thing from GitBash, I can say just suprsing
+
+            // Making receipt file for
+            FileWriter writer = new FileWriter(receiptFile);
+            writer.write("--- SALES RECEIPT ---\n");
+            writer.write("Order Date: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + "\n");
+            writer.write("Sales Total: $" + total + "\n");
+            writer.write("Amount Paid: $" + paid + "\n");
+            writer.write("Change Given: $" + change + "\n");
+            writer.close();  // Close the file writer
+            System.out.println("Receipt saved to " + receiptFile.getAbsolutePath());
+        } catch (IOException e) { // And our basic catch command
+            System.out.println("Error generating receipt file: " + e.getMessage());
         }
     }
 }
