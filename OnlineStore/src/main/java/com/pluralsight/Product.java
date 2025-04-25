@@ -30,7 +30,7 @@ public class Product {
     }
 
     public void display() {
-        System.out.printf("SKU: %s | Name: %s | Price: $%.2f | Department: %s\n",
+        System.out.printf("SKU: %s | Name: %s2 | Price: $%.2f | Department: %s\n",
                 sku, name, price, department);
     }
 }

@@ -91,7 +91,7 @@ public class OnlineStore {
                         Product p = productMap.get(sku);
                         int quantity = cart.get(sku);
                         double itemTotal = p.getPrice() * quantity;
-                        System.out.printf("%s x%d - $%.2f\n", p.getName(), quantity, itemTotal);
+                        System.out.printf("%s %s2 x%d - $%.2f\n", p.getSku(), p.getName(), quantity, itemTotal);
                         total += itemTotal;  // For see total price of prodcuts
                     }
                     System.out.printf("Total: $%.2f\n", total); //We searched  all Internet for this symbols
